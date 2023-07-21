@@ -48,4 +48,9 @@ public class MeterReadingController {
                 ? ResponseEntity.ok(readings.get())
                 : ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/usage/{smartMeterId}")
+    public ResponseEntity usageCost(@PathVariable String smartMeterId) {
+        throw new UnsupportedOperationException(); // todo
+    }
 }
