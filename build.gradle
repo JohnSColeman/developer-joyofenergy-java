@@ -37,6 +37,7 @@ idea {
 
 configurations {
     functionalTestImplementation.extendsFrom testImplementation
+    cucumberRuntime.extendsFrom testImplementation
     functionalTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
@@ -55,9 +56,26 @@ task functionalTest(type: Test) {
     }
 }
 
+task cucumber() {
+    dependsOn assemble, testClasses
+    doLast {
+        javaexec {
+            main = "io.cucumber.core.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = [
+                    '--plugin', 'pretty',
+                    '--plugin', 'html:target/cucumber-report.html',
+                    '--glue', 'cucumber',
+                    'src/test/resources']
+        }
+    }
+}
+
 dependencies {
     /* Spring Boot */
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation('io.cucumber:cucumber-java:7.11.1')
+    testImplementation('io.cucumber:cucumber-junit:7.11.1')
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
