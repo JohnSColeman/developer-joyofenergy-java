@@ -3,10 +3,13 @@ package uk.tw.energy.controller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import uk.tw.energy.SeedingApplicationDataConfiguration;
 import uk.tw.energy.builders.MeterReadingsBuilder;
 import uk.tw.energy.domain.ElectricityReading;
 import uk.tw.energy.domain.MeterReadings;
+import uk.tw.energy.service.AccountService;
 import uk.tw.energy.service.MeterReadingService;
+import uk.tw.energy.service.PricePlanService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,11 +23,14 @@ public class MeterReadingControllerTest {
     private static final String SMART_METER_ID = "10101010";
     private MeterReadingController meterReadingController;
     private MeterReadingService meterReadingService;
+    private SeedingApplicationDataConfiguration beanConfigs = new SeedingApplicationDataConfiguration();
 
     @BeforeEach
     public void setUp() {
         this.meterReadingService = new MeterReadingService(new HashMap<>());
-        this.meterReadingController = new MeterReadingController(meterReadingService);
+        this.meterReadingController = new MeterReadingController(meterReadingService,
+                new PricePlanService(beanConfigs.pricePlans(), meterReadingService),
+                new AccountService(beanConfigs.smartMeterToPricePlanAccounts()));
     }
 
     @Test

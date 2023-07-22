@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.tw.energy.domain.ElectricityReading;
 import uk.tw.energy.domain.MeterReadings;
+import uk.tw.energy.service.AccountService;
 import uk.tw.energy.service.MeterReadingService;
+import uk.tw.energy.service.PricePlanService;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,9 +22,13 @@ import java.util.Optional;
 public class MeterReadingController {
 
     private final MeterReadingService meterReadingService;
+    private final PricePlanService pricePlanService;
+    private final AccountService accountService;
 
-    public MeterReadingController(MeterReadingService meterReadingService) {
+    public MeterReadingController(MeterReadingService meterReadingService, PricePlanService pricePlanService, AccountService accountService) {
         this.meterReadingService = meterReadingService;
+        this.pricePlanService = pricePlanService;
+        this.accountService = accountService;
     }
 
     @PostMapping("/store")
@@ -51,6 +57,6 @@ public class MeterReadingController {
 
     @GetMapping("/usage/{smartMeterId}")
     public ResponseEntity usageCost(@PathVariable String smartMeterId) {
-        throw new UnsupportedOperationException(); // todo
+        return ResponseEntity.notFound().build();
     }
 }

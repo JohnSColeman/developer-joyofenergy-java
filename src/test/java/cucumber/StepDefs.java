@@ -1,12 +1,19 @@
 package cucumber;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.junit.Assert;
+import org.springframework.http.ResponseEntity;
+import uk.tw.energy.SeedingApplicationDataConfiguration;
+import uk.tw.energy.controller.MeterReadingController;
 import uk.tw.energy.domain.ElectricityReading;
 import uk.tw.energy.domain.PricePlan;
+import uk.tw.energy.service.AccountService;
 import uk.tw.energy.service.MeterReadingService;
 import uk.tw.energy.service.PricePlanService;
 
@@ -20,13 +27,23 @@ import java.util.stream.Collectors;
 
 public class StepDefs {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     private final MeterReadingService meterReadingService = new MeterReadingService(new HashMap<>());
     private final List<PricePlan> pricePlans = new ArrayList<>();
-
     private String smartMeterId;
     private ZoneId zoneId;
     private List<ElectricityReading> electricityReadings;
     private Map<String, BigDecimal> consumptionCosts;
+
+    private SeedingApplicationDataConfiguration beanConfigs = new SeedingApplicationDataConfiguration();
+    private MeterReadingController meterReadingController;
+
+    public StepDefs() {
+        this.meterReadingController = new MeterReadingController(meterReadingService,
+                new PricePlanService(beanConfigs.pricePlans(), meterReadingService),
+                new AccountService(beanConfigs.smartMeterToPricePlanAccounts()));
+    }
 
     @Given("a smart meter with ID {string}")
     public void aSmartMeterWithID(String smartMeterId) {
@@ -87,5 +104,24 @@ public class StepDefs {
             BigDecimal actualCost = consumptionCosts.get(pricePlan);
             Assert.assertEquals(expectedCost, actualCost);
         });
+    }
+
+    @Given("the following readings for the smart meter:")
+    public void the_following_readings_for_the_smart_meter(List<Map<String, String>> readingsTable) {
+        electricityReadings = readingsTable.stream()
+                .map(row -> {
+                    LocalDateTime time = LocalDateTime.parse(row.get("Date"), DateTimeFormatter.ofPattern("yyyy-MM-dd H:mm"));
+                    BigDecimal reading = new BigDecimal(row.get("Reading"));
+                    return new ElectricityReading(time.atZone(zoneId).toInstant(), reading);
+                })
+                .collect(Collectors.toList());
+        meterReadingService.storeReadings(smartMeterId, electricityReadings);
+    }
+
+    @Then("the weekly usage cost is {double}")
+    public void the_weekly_usage_cost_is(Double cost) throws JsonProcessingException {
+        ResponseEntity response = meterReadingController.usageCost(smartMeterId);
+        JsonNode node = objectMapper.readTree(response.getBody().toString());
+        Assert.assertEquals(cost.doubleValue(), node.get("cost").asDouble());
     }
 }
