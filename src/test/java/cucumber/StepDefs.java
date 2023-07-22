@@ -1,9 +1,6 @@
 package cucumber;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -19,6 +16,7 @@ import uk.tw.energy.service.MeterReadingService;
 import uk.tw.energy.service.PricePlanService;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -120,6 +118,6 @@ public class StepDefs {
     @Then("the weekly usage cost is {double}")
     public void the_weekly_usage_cost_is(Double cost) throws JsonProcessingException {
         ResponseEntity<UsageCost> response = meterReadingController.usageCost(smartMeterId);
-        Assert.assertEquals(BigDecimal.valueOf(cost), response.getBody().getCost());
+        Assert.assertEquals(BigDecimal.valueOf(cost).setScale(2, RoundingMode.HALF_UP), response.getBody().cost());
     }
 }

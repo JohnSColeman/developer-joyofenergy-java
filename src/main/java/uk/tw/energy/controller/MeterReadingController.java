@@ -66,7 +66,7 @@ public class MeterReadingController {
         if (plan.isEmpty()) return ResponseEntity.notFound().build();
         Optional<List<ElectricityReading>> readings = meterReadingService.getReadings(smartMeterId);
         if (readings.isEmpty())  return ResponseEntity.notFound().build();
-        BigDecimal cost = pricePlanService.calculateCost(readings.get(), plan.get());
+        BigDecimal cost = pricePlanService.calculateUsageCost(readings.get(), plan.get());
         return ResponseEntity.ok(new UsageCost(cost));
     }
 }

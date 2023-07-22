@@ -1,15 +1,10 @@
 package uk.tw.energy.domain;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
-public class UsageCost {
-    private BigDecimal cost;
-
+public record UsageCost(BigDecimal cost) {
     public UsageCost(BigDecimal cost) {
-        this.cost = cost;
-    }
-
-    public BigDecimal getCost() {
-        return cost;
+        this.cost = cost.setScale(2, RoundingMode.HALF_UP);
     }
 }
