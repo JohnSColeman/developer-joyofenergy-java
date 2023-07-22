@@ -1,12 +1,11 @@
 package uk.tw.energy.controller;
 
+import io.vavr.collection.Seq;
+import io.vavr.control.Validation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.tw.energy.domain.ElectricityReading;
-import uk.tw.energy.domain.MeterReadings;
-import uk.tw.energy.domain.PricePlan;
-import uk.tw.energy.domain.UsageCost;
+import uk.tw.energy.domain.*;
 import uk.tw.energy.service.AccountService;
 import uk.tw.energy.service.MeterReadingService;
 import uk.tw.energy.service.PricePlanService;
@@ -52,6 +51,8 @@ public class MeterReadingController {
         Optional<List<ElectricityReading>> readings = meterReadingService.getReadings(smartMeterId);
         if (readings.isEmpty())  return ResponseEntity.notFound().build();
         BigDecimal cost = pricePlanService.calculateUsageCost(readings.get(), plan.get());
-        return ResponseEntity.ok(new UsageCost(cost));
+        Validation<Seq<String>, UsageCost> validCost = UsageCostFactory.INSTANCE.of(cost);
+        if (validCost.isInvalid()) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(validCost.get());
     }
 }

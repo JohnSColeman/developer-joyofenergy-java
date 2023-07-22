@@ -116,7 +116,7 @@ public class StepDefs {
     }
 
     @Then("the weekly usage cost is {double}")
-    public void the_weekly_usage_cost_is(Double cost) throws JsonProcessingException {
+    public void the_weekly_usage_cost_is(Double cost) {
         ResponseEntity<UsageCost> response = meterReadingController.usageCost(smartMeterId);
         Assert.assertEquals(BigDecimal.valueOf(cost).setScale(2, RoundingMode.HALF_UP), response.getBody().cost());
     }
