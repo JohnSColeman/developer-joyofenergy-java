@@ -120,4 +120,10 @@ public class StepDefs {
         ResponseEntity<UsageCost> response = meterReadingController.usageCost(smartMeterId);
         Assert.assertEquals(BigDecimal.valueOf(cost).setScale(2, RoundingMode.HALF_UP), response.getBody().cost());
     }
+
+    @Then("the weekly usage cost is not found")
+    public void theWeeklyUsageCostIsNotFound() {
+        ResponseEntity<UsageCost> response = meterReadingController.usageCost(smartMeterId);
+        Assert.assertTrue("response is 4xx", response.getStatusCode().is4xxClientError());
+    }
 }
