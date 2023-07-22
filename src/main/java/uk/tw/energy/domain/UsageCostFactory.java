@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 public class UsageCostFactory implements Validations {
 
-    public static UsageCostFactory INSTANCE = new UsageCostFactory();
+    public static final UsageCostFactory INSTANCE = new UsageCostFactory();
 
     private UsageCostFactory() {
     }
@@ -16,6 +16,6 @@ public class UsageCostFactory implements Validations {
         return Validation.combine(
                 validateNotNull(cost, "usage cost cannot be null"),
                 validateNotZero(cost, "usage cost cannot be 0")
-        ).ap((p1, p2) -> new UsageCost(cost));
+        ).ap((cost1, cost2) -> new UsageCost(cost));
     }
 }
