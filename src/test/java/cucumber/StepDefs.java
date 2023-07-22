@@ -13,6 +13,7 @@ import uk.tw.energy.SeedingApplicationDataConfiguration;
 import uk.tw.energy.controller.MeterReadingController;
 import uk.tw.energy.domain.ElectricityReading;
 import uk.tw.energy.domain.PricePlan;
+import uk.tw.energy.domain.UsageCost;
 import uk.tw.energy.service.AccountService;
 import uk.tw.energy.service.MeterReadingService;
 import uk.tw.energy.service.PricePlanService;
@@ -26,8 +27,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class StepDefs {
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     private final MeterReadingService meterReadingService = new MeterReadingService(new HashMap<>());
     private final List<PricePlan> pricePlans = new ArrayList<>();
@@ -120,8 +119,7 @@ public class StepDefs {
 
     @Then("the weekly usage cost is {double}")
     public void the_weekly_usage_cost_is(Double cost) throws JsonProcessingException {
-        ResponseEntity response = meterReadingController.usageCost(smartMeterId);
-        JsonNode node = objectMapper.readTree(response.getBody().toString());
-        Assert.assertEquals(cost.doubleValue(), node.get("cost").asDouble());
+        ResponseEntity<UsageCost> response = meterReadingController.usageCost(smartMeterId);
+        Assert.assertEquals(BigDecimal.valueOf(cost), response.getBody().getCost());
     }
 }

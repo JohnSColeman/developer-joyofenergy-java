@@ -1,7 +1,7 @@
 Feature: As an electricity consumer, I want to be able to view my usage cost of the last week so that I can monitor my spending
 
   Scenario: Given I have a smart meter ID with price plan attached to it and usage data stored, when I request the usage cost then I am shown the correct cost of last week's usage
-    Given a smart meter with ID "<smartMeterId>" and time zone "GMT"
+    Given a smart meter with ID "smart-meter-0" and time zone "GMT"
     And the following readings for the smart meter:
       | Date            | Reading |
       | 2021-10-19 8:00 | 1       |
