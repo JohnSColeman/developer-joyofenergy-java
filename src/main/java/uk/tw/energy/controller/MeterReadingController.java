@@ -5,27 +5,26 @@ import io.vavr.control.Validation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uk.tw.energy.domain.*;
-import uk.tw.energy.service.AccountService;
+import uk.tw.energy.domain.ElectricityReading;
+import uk.tw.energy.domain.MeterReadings;
+import uk.tw.energy.domain.UsageCost;
 import uk.tw.energy.service.MeterReadingService;
-import uk.tw.energy.service.PricePlanService;
+import uk.tw.energy.service.ServiceFacade;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/readings")
-public class MeterReadingController {
+public class MeterReadingController implements ResponseEntityFactory {
 
     private final MeterReadingService meterReadingService;
-    private final PricePlanService pricePlanService;
-    private final AccountService accountService;
+    private final ServiceFacade serviceFacade;
 
-    public MeterReadingController(MeterReadingService meterReadingService, PricePlanService pricePlanService, AccountService accountService) {
+
+    public MeterReadingController(MeterReadingService meterReadingService,ServiceFacade serviceFacade) {
         this.meterReadingService = meterReadingService;
-        this.pricePlanService = pricePlanService;
-        this.accountService = accountService;
+        this.serviceFacade = serviceFacade;
     }
 
     @PostMapping("/store")
@@ -44,15 +43,7 @@ public class MeterReadingController {
     }
 
     @GetMapping("/usage/{smartMeterId}")
-    public ResponseEntity<UsageCost> usageCost(@PathVariable String smartMeterId) {
-        String pricePlanId = accountService.getPricePlanIdForSmartMeterId(smartMeterId);
-        Optional<PricePlan> plan = pricePlanService.getPricePlan(pricePlanId);
-        if (plan.isEmpty()) return ResponseEntity.notFound().build();
-        Optional<List<ElectricityReading>> readings = meterReadingService.getReadings(smartMeterId);
-        if (readings.isEmpty())  return ResponseEntity.notFound().build();
-        BigDecimal cost = pricePlanService.calculateUsageCost(readings.get(), plan.get());
-        Validation<Seq<String>, UsageCost> validCost = UsageCostFactory.INSTANCE.of(cost);
-        if (validCost.isInvalid()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(validCost.get());
+    public ResponseEntity<Validation<Seq<String>, UsageCost>> usageCost(@PathVariable String smartMeterId) {
+        return responseEntity(serviceFacade.calculateUsageCost(smartMeterId));
     }
 }

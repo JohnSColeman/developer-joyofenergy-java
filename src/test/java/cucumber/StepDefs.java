@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.vavr.collection.Seq;
+import io.vavr.control.Validation;
 import org.junit.Assert;
 import org.springframework.http.ResponseEntity;
 import uk.tw.energy.SeedingApplicationDataConfiguration;
@@ -14,6 +16,7 @@ import uk.tw.energy.domain.UsageCost;
 import uk.tw.energy.service.AccountService;
 import uk.tw.energy.service.MeterReadingService;
 import uk.tw.energy.service.PricePlanService;
+import uk.tw.energy.service.ServiceFacade;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -37,9 +40,10 @@ public class StepDefs {
     private MeterReadingController meterReadingController;
 
     public StepDefs() {
-        this.meterReadingController = new MeterReadingController(meterReadingService,
+        ServiceFacade serviceFacade = new ServiceFacade(meterReadingService,
                 new PricePlanService(beanConfigs.pricePlans(), meterReadingService),
                 new AccountService(beanConfigs.smartMeterToPricePlanAccounts()));
+        this.meterReadingController = new MeterReadingController(meterReadingService, serviceFacade);
     }
 
     @Given("a smart meter with ID {string}")
@@ -117,13 +121,13 @@ public class StepDefs {
 
     @Then("the weekly usage cost is {double}")
     public void the_weekly_usage_cost_is(Double cost) {
-        ResponseEntity<UsageCost> response = meterReadingController.usageCost(smartMeterId);
-        Assert.assertEquals(BigDecimal.valueOf(cost).setScale(2, RoundingMode.HALF_UP), response.getBody().cost());
+        ResponseEntity<Validation<Seq<String>, UsageCost>> response = meterReadingController.usageCost(smartMeterId);
+        Assert.assertEquals(BigDecimal.valueOf(cost).setScale(2, RoundingMode.HALF_UP), response.getBody().get().cost());
     }
 
     @Then("the weekly usage cost is not found")
     public void theWeeklyUsageCostIsNotFound() {
-        ResponseEntity<UsageCost> response = meterReadingController.usageCost(smartMeterId);
+        ResponseEntity<Validation<Seq<String>, UsageCost>> response = meterReadingController.usageCost(smartMeterId);
         Assert.assertTrue("response is 4xx", response.getStatusCode().is4xxClientError());
     }
 }

@@ -10,6 +10,7 @@ import uk.tw.energy.domain.MeterReadings;
 import uk.tw.energy.service.AccountService;
 import uk.tw.energy.service.MeterReadingService;
 import uk.tw.energy.service.PricePlanService;
+import uk.tw.energy.service.ServiceFacade;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,9 +29,10 @@ public class MeterReadingControllerTest {
     @BeforeEach
     public void setUp() {
         this.meterReadingService = new MeterReadingService(new HashMap<>());
-        this.meterReadingController = new MeterReadingController(meterReadingService,
+        ServiceFacade serviceFacade = new ServiceFacade(meterReadingService,
                 new PricePlanService(beanConfigs.pricePlans(), meterReadingService),
                 new AccountService(beanConfigs.smartMeterToPricePlanAccounts()));
+        this.meterReadingController = new MeterReadingController(meterReadingService, serviceFacade);
     }
 
     @Test
